@@ -7,7 +7,6 @@ import 'history_screen.dart';
 import 'package:task_manager/screens/add_task_screen.dart';
 import 'package:intl/intl.dart';
 import 'settings_screen.dart';
-import 'package:toast/toast.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -15,7 +14,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  Future<List<Task>> _taskList;
+  late Future<List<Task>> _taskList;
   final DateFormat _dateFormatter = DateFormat('MMM dd, yyyy');
 
   @override
@@ -30,8 +29,17 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<bool> onBackPressed() {
-    return SystemNavigator.pop();
+  Future<bool> onBackPressed() async {
+    // Check if there are any previous routes in the navigation stack
+    if (Navigator.canPop(context)) {
+      // If there are routes, pop the current route
+      Navigator.pop(context);
+      return Future.value(false); // Don't exit the app
+    } else {
+      // If no routes can be popped, exit the app
+      SystemNavigator.pop();
+      return Future.value(true); // Exiting the app
+    }
   }
 
   Widget _buildTask(Task task) {
@@ -61,10 +69,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               trailing: Checkbox(
                 onChanged: (value) {
-                  task.status = value ? 1 : 0;
+                  task.status = value! ? 1 : 0;
                   DatabaseHelper.instance.updateTask(task);
-                  Toast.show("Task Completed", context,
-                      duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
                   _updateTaskList();
                 },
                 activeColor: Theme.of(context).primaryColor,
@@ -99,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
             context,
             MaterialPageRoute(
               builder: (_) => AddTaskScreen(
-                updateTaskList: _updateTaskList,
+                updateTaskList: _updateTaskList, task: Task(id: 0, title: "", date: DateTime.now(), priority: "", status: 0),
               ),
             ),
           ),
@@ -168,13 +174,13 @@ class _HomeScreenState extends State<HomeScreen> {
             }
 
             final int completedTaskCount = snapshot.data
-                .where((Task task) => task.status == 0)
+                !.where((Task task) => task.status == 0)
                 .toList()
                 .length;
 
             return ListView.builder(
               padding: EdgeInsets.symmetric(vertical: 0.0),
-              itemCount: 1 + snapshot.data.length,
+              itemCount: 1 + snapshot.data!.length,
               itemBuilder: (BuildContext context, int index) {
                 if (index == 0) {
                   return Padding(
@@ -195,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           child: Center(
                             child: Text(
-                              'You have [ $completedTaskCount ] pending task out of [ ${snapshot.data.length} ]',
+                              'You have [ $completedTaskCount ] pending task out of [ ${snapshot.data!.length} ]',
                               style: TextStyle(
                                 color: Colors.blueGrey,
                                 fontSize: 15.0,
@@ -208,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   );
                 }
-                return _buildTask(snapshot.data[index - 1]);
+                return _buildTask(snapshot.data![index - 1]);
               },
             );
           },

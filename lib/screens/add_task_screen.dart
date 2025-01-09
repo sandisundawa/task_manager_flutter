@@ -3,13 +3,12 @@ import 'package:task_manager/helpers/database_helper.dart';
 import 'package:task_manager/models/task_model.dart';
 import 'home_screen.dart';
 import 'package:intl/intl.dart';
-import 'package:toast/toast.dart';
 
 class AddTaskScreen extends StatefulWidget {
   final Function updateTaskList;
   final Task task;
 
-  AddTaskScreen({this.updateTaskList, this.task});
+  AddTaskScreen({required this.updateTaskList, required this.task});
 
   @override
   _AddTaskScreenState createState() => _AddTaskScreenState();
@@ -18,7 +17,7 @@ class AddTaskScreen extends StatefulWidget {
 class _AddTaskScreenState extends State<AddTaskScreen> {
   final _formKey = GlobalKey<FormState>();
   String _title = '';
-  String _priority;
+  String _priority = '';
   DateTime _date = DateTime.now();
   TextEditingController _dateController = TextEditingController();
   final DateFormat _dateFormatter = DateFormat('MMM dd, yyyy');
@@ -45,7 +44,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   }
 
   _handleDatePicker() async {
-    final DateTime date = await showDatePicker(
+    final DateTime? date = await showDatePicker(
       context: context,
       initialDate: _date,
       firstDate: DateTime(2000),
@@ -63,29 +62,23 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     DatabaseHelper.instance.deleteTask(widget.task.id);
     Navigator.pop(context);
     widget.updateTaskList();
-    Toast.show("Task Deleted", context,
-        duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
   }
 
   _submit() {
-    if (_formKey.currentState.validate()) {
-      _formKey.currentState.save();
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
       print('$_title, $_date, $_priority');
 
-      Task task = Task(title: _title, date: _date, priority: _priority);
+      Task task = Task(id: 0, title: _title, date: _date, priority: _priority, status: 0);
       if (widget.task == null) {
         // Insert the task to our user's database
         task.status = 0;
         DatabaseHelper.instance.insertTask(task);
-        Toast.show("New Task Added", context,
-            duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
       } else {
         // Update the task
         task.id = widget.task.id;
         task.status = widget.task.status;
         DatabaseHelper.instance.updateTask(task);
-        Toast.show("Task Updated", context,
-            duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
       }
       Navigator.push(context, MaterialPageRoute(builder: (_) => HomeScreen()));
       widget.updateTaskList();
@@ -147,10 +140,10 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                               borderRadius: BorderRadius.circular(10.0),
                             ),
                           ),
-                          validator: (input) => input.trim().isEmpty
+                          validator: (input) => input!.trim().isEmpty
                               ? 'Please enter a task title'
                               : null,
-                          onSaved: (input) => _title = input,
+                          onSaved: (input) => _title = input!,
                           initialValue: _title,
                         ),
                       ),
@@ -202,7 +195,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                               : null,
                           onChanged: (value) {
                             setState(() {
-                              _priority = value;
+                              _priority = value!;
                             });
                           },
                           value: _priority,
@@ -217,7 +210,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                           borderRadius: BorderRadius.circular(30.0),
                         ),
                         // ignore: deprecated_member_use
-                        child: FlatButton(
+                        child: TextButton(
                           child: Text(
                             widget.task == null ? 'Add' : 'Update',
                             style: TextStyle(
@@ -238,7 +231,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                                 borderRadius: BorderRadius.circular(30.0),
                               ),
                         // ignore: deprecated_member_use
-                              child: FlatButton(
+                              child: TextButton(
                                 child: Text(
                                   'Delete',
                                   style: TextStyle(

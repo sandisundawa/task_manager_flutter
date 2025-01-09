@@ -5,9 +5,9 @@ class Task {
   String priority;
   int status; // 0 - Incomplete, 1 - Complete
 
-  Task({this.title, this.date, this.priority, this.status});
+  Task({required this.id, required this.title, required this.date, required this.priority, required this.status});
 
-  Task.withId({this.id, this.title, this.date, this.priority, this.status});
+  Task.withId({required this.id, required this.title, required this.date, required this.priority, required this.status});
 
   Map<String, dynamic> toMap() {
     final map = Map<String, dynamic>();

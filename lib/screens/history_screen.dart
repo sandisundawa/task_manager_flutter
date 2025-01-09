@@ -3,7 +3,6 @@ import 'package:task_manager/helpers/database_helper.dart';
 import 'package:task_manager/models/task_model.dart';
 import 'package:task_manager/screens/add_task_screen.dart';
 import 'package:intl/intl.dart';
-import 'package:toast/toast.dart';
 
 import 'home_screen.dart';
 
@@ -13,7 +12,7 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  Future<List<Task>> _taskList;
+  late Future<List<Task>> _taskList;
   final DateFormat _dateFormatter = DateFormat('MMM dd, yyyy');
 
   @override
@@ -61,8 +60,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 onPressed: () {
                   task.status = 0;
                   DatabaseHelper.instance.updateTask(task);
-                  Toast.show("Task reassigned", context,
-                      duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
                   _updateTaskList();
                 },
               ),
@@ -125,13 +122,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
           }
 
           final int completedTaskCount = snapshot.data
-              .where((Task task) => task.status == 1)
+              !.where((Task task) => task.status == 1)
               .toList()
               .length;
 
           return ListView.builder(
             padding: EdgeInsets.symmetric(vertical: 0.0),
-            itemCount: 1 + snapshot.data.length,
+            itemCount: 1 + snapshot.data!.length,
             itemBuilder: (BuildContext context, int index) {
               if (index == 0) {
                 return Padding(
@@ -162,7 +159,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   ),
                 );
               }
-              return _buildTask(snapshot.data[index - 1]);
+              return _buildTask(snapshot.data![index - 1]);
             },
           );
         },
